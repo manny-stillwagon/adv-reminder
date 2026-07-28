@@ -10,7 +10,7 @@ import {
   InitiativeReminder,
   SkillReminder,
 } from "./reminders.js";
-import { debug, getApplicableChanges } from "./util.js";
+import { debug, getApplicableChanges, toBoolean } from "./util.js";
 
 /**
  * @typedef LabelModeData
@@ -39,23 +39,26 @@ import { debug, getApplicableChanges } from "./util.js";
 /**
  * A mixin to share a function override between the two label accumulators.
  */
-const LabelMixin = (superClass) => class extends superClass {
-  _getConditionForEffect(actor, key) {
-    const props = super._getConditionForEffect(actor, key);
-    return props
-      // remove the number after exhaustion
-      .map((k) => k.split("-").shift())
-      .flatMap((k) => {
-        // look for active effects with this status in it, get their names
-        const activeEffectNames = actor.appliedEffects
-          .filter((e) => e.statuses.some((s) => s === k))
-          .map((e) => e.link);
-        if (activeEffectNames.length) return activeEffectNames;
-        // fallback to the status effect's name (mostly for exhaustion)
-        return `&Reference[${k} apply=false]`;
-      });
-  }
-}
+const LabelMixin = (superClass) =>
+  class extends superClass {
+    _getConditionForEffect(actor, key) {
+      const props = super._getConditionForEffect(actor, key);
+      return (
+        props
+          // remove the number after exhaustion
+          .map((k) => k.split("-").shift())
+          .flatMap((k) => {
+            // look for active effects with this status in it, get their names
+            const activeEffectNames = actor.appliedEffects
+              .filter((e) => e.statuses.some((s) => s === k))
+              .map((e) => e.link);
+            if (activeEffectNames.length) return activeEffectNames;
+            // fallback to the status effect's name (mostly for exhaustion)
+            return `&Reference[${k} apply=false]`;
+          })
+      );
+    }
+  };
 
 class LabelAccumulator extends LabelMixin(AdvantageAccumulator) {
   /**
@@ -86,21 +89,20 @@ class LabelAccumulator extends LabelMixin(AdvantageAccumulator) {
   }
 
   _rollModeLabel(...labels) {
-    return labels
-      .map(l => game.i18n.localize(l))
-      .join(" ");
+    return labels.map((l) => game.i18n.localize(l)).join(" ");
   }
 
   _applyChangeAdd(delta, change) {
     // Add a source of advantage or disadvantage.
     if (delta === 1) this.counts.advantages.labels.push(change.effect.link);
-    else if (delta === -1) this.counts.disadvantages.labels.push(change.effect.link);
+    else if (delta === -1)
+      this.counts.disadvantages.labels.push(change.effect.link);
   }
 
   _applyChangeOverride(delta, change) {
     // Force a given roll mode.
     if (delta === -1 || delta === 0 || delta === 1)
-      this.counts.override = {label: change.effect.link, mode: delta};
+      this.counts.override = { label: change.effect.link, mode: delta };
   }
 
   _applyChangeUpgrade(delta, change) {
@@ -118,15 +120,23 @@ class LabelAccumulator extends LabelMixin(AdvantageAccumulator) {
   }
 
   applyFlags(actorFlags, advKeys, disKeys) {
-    advKeys.forEach((key) => this.counts.advantages.labels.push(...(actorFlags[key] ?? [])));
-    disKeys.forEach((key) => this.counts.disadvantages.labels.push(...(actorFlags[key] ?? [])));
+    advKeys.forEach((key) =>
+      this.counts.advantages.labels.push(...(actorFlags[key] ?? [])),
+    );
+    disKeys.forEach((key) =>
+      this.counts.disadvantages.labels.push(...(actorFlags[key] ?? [])),
+    );
   }
 
   applyConditions(actor, advConditions, disConditions) {
     if (!actor) return;
-    const advLabels = advConditions.flatMap(c => this._getConditionForEffect(actor, c));
+    const advLabels = advConditions.flatMap((c) =>
+      this._getConditionForEffect(actor, c),
+    );
     this.counts.advantages.labels.push(...advLabels);
-    const disLabels = disConditions.flatMap(c => this._getConditionForEffect(actor, c));
+    const disLabels = disConditions.flatMap((c) =>
+      this._getConditionForEffect(actor, c),
+    );
     this.counts.disadvantages.labels.push(...disLabels);
   }
 
@@ -146,7 +156,11 @@ class LabelAccumulator extends LabelMixin(AdvantageAccumulator) {
     debug("counts for source labels", this.counts);
     // too much logic on what to pass which would just be duplicated in renderRollConfigurationDialog hook anyway
     // pass it all and have the hook decide what to show
-    foundry.utils.setProperty(dialog, "options.adv-reminder.advSources", this.counts);
+    foundry.utils.setProperty(
+      dialog,
+      "options.adv-reminder.advSources",
+      this.counts,
+    );
   }
 }
 
@@ -156,8 +170,11 @@ const SourceMixin = (superclass) =>
       if (!actor) return {};
 
       // the Midi flag has to be true and the flag on the actor must be true (i.e. not overwritten by another change to false)
-      const filterFn = (change) => change.key.startsWith("flags.midi-qol.") &&
-        ["true", "1"].includes(change.value.trim()) && foundry.utils.getProperty(actor, change.key) === true;
+      const filterFn = (change) =>
+        change.key.startsWith("flags.midi-qol.") &&
+        toBoolean(change.value) === true &&
+        foundry.utils.getProperty(actor, change.key) === true;
+
       return getApplicableChanges(actor, filterFn)
         .map((change) => {
           change.key = change.key.substring(15);
@@ -165,20 +182,21 @@ const SourceMixin = (superclass) =>
         })
         .reduce((accum, change) => {
           if (!accum[change.key]) accum[change.key] = [];
-          accum[change.key].push(change.effect.link)
+          accum[change.key].push(change.effect.link);
           return accum;
         }, {});
     }
 
     static AccumulatorClass = LabelAccumulator;
 
-    static UpdateMessage = "checking for adv/dis effects to display their source";
+    static UpdateMessage =
+      "checking for adv/dis effects to display their source";
 
     _rollModeCounts(rollModes) {
       return {
         override: null, // if overridden, should be { label: "foo", mode: 1 }
         advantages: { labels: [], suppressed: [] },
-        disadvantages: { labels: [], suppressed: [] }
+        disadvantages: { labels: [], suppressed: [] },
       };
     }
 
@@ -211,7 +229,8 @@ export class InitiativeSource extends SourceMixin(InitiativeReminder) {
 
     // Handle system-defined flags (i.e. Special Traits) that give advantage to initiative
     const flags = ["initiativeAdv"];
-    if (game.settings.get("dnd5e", "rulesVersion") === "modern") flags.push("remarkableAthlete");
+    if (game.settings.get("dnd5e", "rulesVersion") === "modern")
+      flags.push("remarkableAthlete");
     this._applyFlagSource(accumulator, flags);
     this._applyFlagEffects(accumulator, flags);
   }
@@ -221,22 +240,25 @@ export class InitiativeSource extends SourceMixin(InitiativeReminder) {
    */
   _applyFlagSource(accumulator, flags) {
     flags
-      .filter(flag => foundry.utils.getProperty(this.actor._source, `flags.dnd5e.${flag}`))
-      .forEach(flag => accumulator.advantage(CONFIG.DND5E.characterFlags[flag]?.name));
+      .filter((flag) =>
+        foundry.utils.getProperty(this.actor._source, `flags.dnd5e.${flag}`),
+      )
+      .forEach((flag) =>
+        accumulator.advantage(CONFIG.DND5E.characterFlags[flag]?.name),
+      );
   }
 
   /**
    * Check active effects for any initiative advantage flags.
    */
   _applyFlagEffects(accumulator, flags) {
-    const flagKeys = flags.map(flag => `flags.dnd5e.${flag}`);
-    this.actor.appliedEffects
-      .forEach((effect) => {
-        const hasFlag = effect.changes
-          .map(change => change.key)
-          .some(key => flagKeys.includes(key));
-        if (hasFlag) accumulator.advantage(effect.link);
-      });
+    const flagKeys = flags.map((flag) => `flags.dnd5e.${flag}`);
+    this.actor.appliedEffects.forEach((effect) => {
+      const hasFlag = effect.changes
+        .map((change) => change.key)
+        .some((key) => flagKeys.includes(key));
+      if (hasFlag) accumulator.advantage(effect.link);
+    });
   }
 }
 
@@ -252,11 +274,12 @@ class CriticalLabelAccumulator extends LabelMixin(CriticalAccumulator) {
   }
 
   applyFlags(actorFlags, critKeys, normalKeys) {
-    critKeys.forEach(key => {
+    critKeys.forEach((key) => {
       if (actorFlags[key]) this.counts.critical.labels.push(...actorFlags[key]);
     });
-    normalKeys.forEach(key => {
-      if(actorFlags[key]) this.counts.critical.suppressed.push(...actorFlags[key]);
+    normalKeys.forEach((key) => {
+      if (actorFlags[key])
+        this.counts.critical.suppressed.push(...actorFlags[key]);
     });
   }
 
@@ -268,7 +291,11 @@ class CriticalLabelAccumulator extends LabelMixin(CriticalAccumulator) {
     debug("counts for source labels", this.counts);
     // too much logic on what to pass which would just be duplicated in renderRollConfigurationDialog hook anyway
     // pass it all and have the hook decide what to show
-    foundry.utils.setProperty(dialog, "options.adv-reminder.critSources", this.counts);
+    foundry.utils.setProperty(
+      dialog,
+      "options.adv-reminder.critSources",
+      this.counts,
+    );
   }
 }
 
@@ -282,13 +309,15 @@ export class CriticalSource extends SourceMixin(CriticalReminder) {
 
   static AccumulatorClass = CriticalLabelAccumulator;
 
-  static UpdateMessage = "checking for crit/normal effects to display their source";
+  static UpdateMessage =
+    "checking for crit/normal effects to display their source";
 
   _adjustRange(distanceFn, grantsCriticalRange) {
     // check if the range applies, remove flag if not
     if ("grants.critical.range" in this.targetFlags) {
       const distance = distanceFn();
-      if (distance > grantsCriticalRange) delete this.targetFlags["grants.critical.range"];
+      if (distance > grantsCriticalRange)
+        delete this.targetFlags["grants.critical.range"];
     }
   }
 
@@ -297,7 +326,7 @@ export class CriticalSource extends SourceMixin(CriticalReminder) {
    */
   _initCounts(isCritical) {
     const counts = {
-      critical: { labels: [], suppressed: [] }
+      critical: { labels: [], suppressed: [] },
     };
     this._applyNat20(counts);
     return counts;
@@ -314,7 +343,9 @@ export class CriticalSource extends SourceMixin(CriticalReminder) {
       const isCritical = lastAttack?.rolls[0]?.isCritical;
       if (isCritical) {
         const value = lastAttack.rolls[0].d20.total;
-        counts.critical.labels.push(game.i18n.format("adv-reminder.Source.Critical.nat20", { value }));
+        counts.critical.labels.push(
+          game.i18n.format("adv-reminder.Source.Critical.nat20", { value }),
+        );
       }
     }
   }

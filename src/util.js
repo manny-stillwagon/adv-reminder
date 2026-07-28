@@ -18,7 +18,9 @@ export const log = (...args) => console.log("adv-reminder |", ...args);
  */
 export function isMinVersion(name, version) {
   const module = game.modules.get(name);
-  return module?.active && foundry.utils.isNewerVersion(module.version, version);
+  return (
+    module?.active && foundry.utils.isNewerVersion(module.version, version)
+  );
 }
 
 /**
@@ -31,14 +33,18 @@ export function getTarget() {
 
 export function getDistanceToTargetFn(speaker) {
   return () => {
-    const controlledTokenDoc = game.scenes.get(speaker.scene).tokens.get(speaker.token);
+    const controlledTokenDoc = game.scenes
+      .get(speaker.scene)
+      .tokens.get(speaker.token);
     const targetTokenDoc = game.user.targets.first()?.document;
     if (!controlledTokenDoc || !targetTokenDoc) return Infinity;
 
     // make rays from each controlled grid space to targeted grid space
     const controlledSpaces = _getAllTokenGridSpaces(controlledTokenDoc);
     const targetSpaces = _getAllTokenGridSpaces(targetTokenDoc);
-    const rays = controlledSpaces.flatMap((c) => targetSpaces.map((t) => ({ ray: new Ray(c, t) })));
+    const rays = controlledSpaces.flatMap((c) =>
+      targetSpaces.map((t) => ({ ray: new Ray(c, t) })),
+    );
 
     // measure the horizontal distance: shortest distance between the two tokens' squares
     const dist = canvas.scene.grid.distance;
@@ -48,7 +54,9 @@ export function getDistanceToTargetFn(speaker) {
     const horizDistance = Math.min(...distances);
 
     // compute vertical distance: diff in elevation
-    const verticalDistance = Math.abs(controlledTokenDoc.elevation - targetTokenDoc.elevation);
+    const verticalDistance = Math.abs(
+      controlledTokenDoc.elevation - targetTokenDoc.elevation,
+    );
     return Math.max(horizDistance, verticalDistance);
   };
 }
@@ -80,18 +88,40 @@ export function getApplicableChanges(actor, filterFn = () => true) {
   // copied from Actor#applyActiveEffects
 
   const changes = [];
-  for ( const effect of actor.allApplicableEffects() ) {
-    if ( !effect.active ) continue;
-    changes.push(...effect.changes
-      .filter(filterFn)  // added filter step
-      .map(change => {
-        const c = foundry.utils.deepClone(change);
-        c.effect = effect;
-        c.priority = c.priority ?? (c.mode * 10);
-        return c;
-      }));
+  for (const effect of actor.allApplicableEffects()) {
+    if (!effect.active) continue;
+    changes.push(
+      ...effect.changes
+        .filter(filterFn) // added filter step
+        .map((change) => {
+          const c = foundry.utils.deepClone(change);
+          c.effect = effect;
+          c.priority = c.priority ?? c.mode * 10;
+          return c;
+        }),
+    );
     // removed adding to this.statuses
   }
   changes.sort((a, b) => a.priority - b.priority);
   return changes;
+}
+
+/**
+ * Convert truthy/falsy values to true boolean
+ * @param {any} value The value to normalize
+ * @returns {boolean|null} true/false value for truthy/falsy, null otherwise
+ */
+export function toBoolean(value) {
+  if (value === null || value === undefined) return null;
+
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const trimmed = value.trim().toLowerCase();
+    if (["true", "1", "yes"].includes(trimmed)) return true;
+    if (["false", "0", "no"].includes(trimmed)) return false;
+  }
+
+  // Truthy/falsy for other types
+  return Boolean(value);
 }

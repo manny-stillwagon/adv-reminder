@@ -48,7 +48,9 @@ class BaseFail {
 
   async toMessage(messageData, rollMode) {
     // content that immatates a die roll
-    const content = await renderTemplate("modules/adv-reminder/templates/fail-dice-roll.hbs");
+    const content = await foundry.applications.handlebars.renderTemplate(
+      "modules/adv-reminder/templates/fail-dice-roll.hbs",
+    );
     // merge basic data with child's data
     const chatData = foundry.utils.mergeObject(
       {
@@ -56,10 +58,13 @@ class BaseFail {
         type: CONST.CHAT_MESSAGE_STYLES.OTHER,
         content,
       },
-      messageData
+      messageData,
     );
     // apply the roll mode to adjust message visibility
-    ChatMessage.applyRollMode(chatData, rollMode ?? game.settings.get("core", "rollMode"));
+    ChatMessage.applyRollMode(
+      chatData,
+      rollMode ?? game.settings.get("core", "rollMode"),
+    );
 
     // create the chat message
     return ChatMessage.create(chatData);
@@ -86,8 +91,10 @@ export class AbilitySaveFail extends BaseFail {
   /** @override */
   get failCondition() {
     switch (this.abilityId) {
-      case "dex": return "advReminderFailDexSave";
-      case "str": return "advReminderFailStrSave";
+      case "dex":
+        return "advReminderFailDexSave";
+      case "str":
+        return "advReminderFailStrSave";
     }
   }
 }
