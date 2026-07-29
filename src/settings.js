@@ -1,7 +1,8 @@
 import { debug } from "./util.js";
 
 const { DataModel } = foundry.abstract;
-const { BooleanField, ColorField, SchemaField, StringField } = foundry.data.fields;
+const { BooleanField, ColorField, SchemaField, StringField } =
+  foundry.data.fields;
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export let showSources;
@@ -17,11 +18,15 @@ export class ButtonStyle extends DataModel {
   static defineSchema() {
     return {
       wide: new BooleanField({ required: true, initial: false }),
-      color: new StringField({ required: true, initial: "default", choices: COLORS }),
+      color: new StringField({
+        required: true,
+        initial: "default",
+        choices: COLORS,
+      }),
       custom: new SchemaField({
         buttonColor: new ColorField({ required: true, initial: "#000000" }),
-        textColor: new ColorField()
-      })
+        textColor: new ColorField(),
+      }),
     };
   }
 
@@ -36,7 +41,7 @@ export function initSettings() {
     label: "adv-reminder.ButtonStyle.SETTING.label",
     icon: "fas fa-palette",
     type: ButtonStyleConfig,
-    restricted: false
+    restricted: false,
   });
   game.settings.register("adv-reminder", "buttonStyle", {
     name: "Button Style",
@@ -44,7 +49,7 @@ export function initSettings() {
     config: false,
     type: ButtonStyle,
     default: {},
-    onChange: updateStyle
+    onChange: updateStyle,
   });
 
   game.settings.register("adv-reminder", "showSources", {
@@ -87,7 +92,9 @@ function migrateSettings() {
   const storage = game.settings.storage.get("client");
   const get = (key) => {
     const item = storage.getItem(`adv-reminder.${key}`);
-    return item ? new Setting({ key: `adv-reminder.${key}`, value: item }) : undefined;
+    return item
+      ? new Setting({ key: `adv-reminder.${key}`, value: item })
+      : undefined;
   };
   const remove = (key) => storage.removeItem(`adv-reminder.${key}`);
 
@@ -95,11 +102,13 @@ function migrateSettings() {
 
   const defaultButtonColor = get("defaultButtonColor");
   if (defaultButtonColor)
-    changes["color"] = defaultButtonColor.value === "none" ? "default" : defaultButtonColor.value;
+    changes["color"] =
+      defaultButtonColor.value === "none"
+        ? "default"
+        : defaultButtonColor.value;
 
   const customColor = get("customColor");
-  if (customColor)
-    changes["custom.buttonColor"] = customColor.value;
+  if (customColor) changes["custom.buttonColor"] = customColor.value;
 
   if (!foundry.utils.isEmpty(changes)) {
     const buttonStyle = game.settings.get("adv-reminder", "buttonStyle");
@@ -149,9 +158,10 @@ function updateStyle(buttonStyle) {
  * Includes a test button to show a sample roll dialog to see the style changes.
  */
 class ButtonStyleConfig extends HandlebarsApplicationMixin(ApplicationV2) {
-  constructor(options={}) {
+  constructor(options = {}) {
     super(options);
-    this.#setting = options.setting ?? game.settings.get("adv-reminder", "buttonStyle");
+    this.#setting =
+      options.setting ?? game.settings.get("adv-reminder", "buttonStyle");
     debug("options", options);
   }
 
@@ -161,30 +171,30 @@ class ButtonStyleConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       contentClasses: ["standard-form"],
       contentTag: "form",
       icon: "fas fa-palette",
-      title: "adv-reminder.ButtonStyle.SETTING.label"
+      title: "adv-reminder.ButtonStyle.SETTING.label",
     },
     position: {
       width: 480,
-      height: "auto"
+      height: "auto",
     },
     form: {
       handler: this.#onSubmitForm,
       closeOnSubmit: false,
-      submitOnChange: true
+      submitOnChange: true,
     },
     actions: {
-      test: this.#test
+      test: this.#test,
     },
   };
 
   static PARTS = {
     form: {
-      template: "templates/generic/form-fields.hbs"
+      template: "templates/generic/form-fields.hbs",
     },
     footer: {
-      template: "templates/generic/form-footer.hbs"
-    }
-  }
+      template: "templates/generic/form-footer.hbs",
+    },
+  };
 
   get setting() {
     return this.#setting;
@@ -198,7 +208,12 @@ class ButtonStyleConfig extends HandlebarsApplicationMixin(ApplicationV2) {
         break;
       case "footer":
         context.buttons = [
-          { type: "button", action: "test", icon: "fas fa-eye", label: "adv-reminder.ButtonStyle.SETTING.test" }
+          {
+            type: "button",
+            action: "test",
+            icon: "fas fa-eye",
+            label: "adv-reminder.ButtonStyle.SETTING.test",
+          },
         ];
         break;
     }
@@ -213,21 +228,26 @@ class ButtonStyleConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     return [
       // Widen
       {
-        outer: { field: fields.wide, value: source.wide }
+        field: fields.wide,
+        value: source.wide,
       },
       // Style
       {
-        outer: { field: fields.color, value: source.color }
+        field: fields.color,
+        value: source.color,
       },
       // Custom
       {
         fieldset: true,
         legend: fields.custom.label,
-        fields: Object.values(fields.custom.fields).map(field => {
-          const value = foundry.utils.getProperty(source, `custom.${field.name}`);
+        fields: Object.values(fields.custom.fields).map((field) => {
+          const value = foundry.utils.getProperty(
+            source,
+            `custom.${field.name}`,
+          );
           return { field, value };
-        })
-      }
+        }),
+      },
     ];
   }
 
@@ -239,8 +259,14 @@ class ButtonStyleConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     super._attachFrameListeners();
 
     const form = this.element.querySelector(".window-content");
-    form.addEventListener("submit", this._onSubmitForm.bind(this, this.options.form));
-    form.addEventListener("change", this._onChangeForm.bind(this, this.options.form));
+    form.addEventListener(
+      "submit",
+      this._onSubmitForm.bind(this, this.options.form),
+    );
+    form.addEventListener(
+      "change",
+      this._onChangeForm.bind(this, this.options.form),
+    );
   }
 
   _onRender(context, options) {
@@ -253,8 +279,14 @@ class ButtonStyleConfig extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   _setCustomEnabled(form) {
-    const color = form.querySelector('select[name="color"]');
-    const disabled = color.value !== "custom";
+    let color = form.querySelector('select[name="color"]');
+
+    // Fallback for Foundry v14 where the field name might be fully qualified
+    if (!color) {
+      color = form.querySelector('input[name*="color"]');
+    }
+
+    const disabled = color && color.value !== "custom";
 
     const fieldset = form.querySelector("fieldset");
     if (disabled) fieldset.style.opacity = 0.5;
@@ -262,7 +294,7 @@ class ButtonStyleConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     fieldset.disabled = disabled;
   }
 
-  static async #onSubmitForm(event, form, formData){
+  static async #onSubmitForm(event, form, formData) {
     debug("submitting form", form, formData);
 
     // update state of custom section
@@ -276,10 +308,14 @@ class ButtonStyleConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     debug("test", event, target);
 
     const rollConfig = {
-      rolls: [{ parts: ["@mod", "@prof"], data: { mod: 3, prof: 2 }, options: {} }],
+      rolls: [
+        { parts: ["@mod", "@prof"], data: { mod: 3, prof: 2 }, options: {} },
+      ],
     };
     const dialogConfig = {
-      options: { "adv-reminder": { messages: ["Conditional bonus [[/r +2]]"] } },
+      options: {
+        "adv-reminder": { messages: ["Conditional bonus [[/r +2]]"] },
+      },
     };
     const messageConfig = { create: false };
     CONFIG.Dice.D20Roll.build(rollConfig, dialogConfig, messageConfig);
