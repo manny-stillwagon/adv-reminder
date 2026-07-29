@@ -52,7 +52,7 @@ function applyMidiCustom(actor, change) {
 }
 
 Hooks.once("i18nInit", () => {
-  Localization.localizeDataModel(ButtonStyle);
+  foundry.helpers.Localization.localizeDataModel(ButtonStyle);
 });
 
 Hooks.once("setup", () => {
