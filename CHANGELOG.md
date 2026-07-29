@@ -1,3 +1,12 @@
+# 5.1.0 (WIP)
+
+- feature: support for Foundry v14
+- feature: advantage flags now accept all truthy values (e.g. "true", "1", "yes", 1, "TrUe ")
+- feature: support modern midi-qol (dis)advantage flags. (e.g. flags.midi-qol.advantage.save.{ability} and flags.midi-qol.advantage.check.{ability})
+- feature: added message flags to match modern midi-qol style (e.g. flags.adv-reminder.message.save.{ability} and flags.adv-reminder.message.check.{ability})
+  - old style midi-qol advantage and message flags currently still supported
+- bug fix: fix malformed settings window
+
 # 5.0.2
 
 - feature: update RSR compatibility with more accurate message, source, and reminder processing, tested with version 3.5.0

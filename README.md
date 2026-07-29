@@ -1,8 +1,14 @@
 # Advantage Reminder for dnd5e
 
-![GitHub release (latest by date and asset)](https://img.shields.io/github/downloads/kaelad02/adv-reminder/latest/module.zip)
-[![Forge Installs](https://img.shields.io/badge/dynamic/json?label=Forge%20Installs&query=package.installs&suffix=%25&url=https%3A%2F%2Fforge-vtt.com%2Fapi%2Fbazaar%2Fpackage%2Fadv-reminder&colorB=4aa94a)](https://forge-vtt.com/bazaar#package=adv-reminder)
-![Supported Foundry Versions](https://img.shields.io/endpoint?url=https://foundryshields.com/version?url=https://github.com/kaelad02/adv-reminder/releases/latest/download/module.json)
+![GitHub release (latest by date and asset)](https://img.shields.io/github/downloads/manny-stillwagon/adv-reminder/latest/module.zip)
+![Supported Foundry Versions](https://img.shields.io/endpoint?url=https://foundryshields.com/version?url=https://github.com/manny-stillwagon/adv-reminder/releases/latest/download/module.json)
+
+## Manny's notes
+This fork updates Kaelad02's original module for Foundry VTT v14.
+
+I will likely not be adding any features, just trying to maintain functionality. Please open an issue if you find any problems.
+
+Original ReadMe continues below.
 
 Advantage Reminder builds on how the D&D 5e system handles Advantage and Disadvantage on D20 Tests. While you can set Advantage on rolls like Saving Throws, it's not always clear when you should roll with Advantage or why. This module improves that by allowing you to make the default button stand out by styling it, as seen by the green button in the screenshot below. It also can tell you why you should make that roll, as seen by the "Advantage from Rage" message.
 
@@ -66,9 +72,9 @@ If the player holds down one of the Ctrl/Alt/Shift/Meta keys to fast-forward the
 [Midi QOL](https://foundryvtt.com/packages/midi-qol) This module works with Midi QOL, however there is a lot of crossover. Both modules can handle the advantage/disadvantage/critical flags, so you don't need this module for that. If you want the CSS change and messages feature, then it works with the following notes:
 
 - This module will not process the advantage/disadvantage/critical flags if Midi QOL is active, since it will process them already
-- Does not show messages if Midi QOL is configured to fast forward rolls since there is no dialog to show them 
+- Does not show messages if Midi QOL is configured to fast forward rolls since there is no dialog to show them
 
 [Ready Set Roll for D&D5e](https://foundryvtt.com/packages/ready-set-roll-5e) This module works with Ready Set Roll with the following notes:
 
-- This module will apply advantage/disadvantage on checks even if RSR is configured for quick rolls. This is skipped if you hold down one of the roll modifier keys to manually apply advantage/disadvantage (similar to core behavior). 
+- This module will apply advantage/disadvantage on checks even if RSR is configured for quick rolls. This is skipped if you hold down one of the roll modifier keys to manually apply advantage/disadvantage (similar to core behavior).
 - Does not show messages if RSR is configured for quick rolls since there is no dialog to show them
