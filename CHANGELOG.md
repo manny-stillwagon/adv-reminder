@@ -1,4 +1,4 @@
-# 5.1.0 (WIP)
+# 5.1.0
 
 - feature: support for Foundry v14
 - feature: advantage flags now accept all truthy values (e.g. "true", "1", "yes", 1, "TrUe ")
