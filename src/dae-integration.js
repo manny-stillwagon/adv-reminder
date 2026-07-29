@@ -41,25 +41,41 @@ export default class DaeIntegration {
     this.messageFlags.push("flags.adv-reminder.message.all");
     this.messageFlags.push("flags.adv-reminder.message.attack.all");
     this.messageFlags.push("flags.adv-reminder.message.ability.all");
-    this.messageFlags.push("flags.adv-reminder.message.ability.check.all");
-    this.messageFlags.push("flags.adv-reminder.message.ability.save.all");
+    this.messageFlags.push("flags.adv-reminder.message.check.all");
+    this.messageFlags.push("flags.adv-reminder.message.save.all");
     this.messageFlags.push("flags.adv-reminder.message.skill.all");
     this.messageFlags.push("flags.adv-reminder.message.deathSave");
     this.messageFlags.push("flags.adv-reminder.message.damage.all");
 
+    // Message flags ala deprecated midi advantage flags for backwards compatibility
+    this.messageFlags.push("flags.adv-reminder.message.ability.check.all");
+    this.messageFlags.push("flags.adv-reminder.message.ability.save.all");
+
     const actionTypes = ["mwak", "rwak", "msak", "rsak"];
-    actionTypes.forEach((actionType) => this.messageFlags.push(`flags.adv-reminder.message.attack.${actionType}`));
+    actionTypes.forEach((actionType) =>
+      this.messageFlags.push(`flags.adv-reminder.message.attack.${actionType}`),
+    );
 
     Object.keys(CONFIG.DND5E.itemActionTypes).forEach((actionType) =>
-      this.messageFlags.push(`flags.adv-reminder.message.damage.${actionType}`)
+      this.messageFlags.push(`flags.adv-reminder.message.damage.${actionType}`),
     );
 
     Object.keys(CONFIG.DND5E.abilities).forEach((abilityId) => {
       this.messageFlags.push(`flags.adv-reminder.message.attack.${abilityId}`);
-      this.messageFlags.push(`flags.adv-reminder.message.ability.check.${abilityId}`);
-      this.messageFlags.push(`flags.adv-reminder.message.ability.save.${abilityId}`);
+      this.messageFlags.push(`flags.adv-reminder.message.check.${abilityId}`);
+      this.messageFlags.push(`flags.adv-reminder.message.save.${abilityId}`);
+
+      // Message flags ala deprecated midi advantage flags for backwards compatibility
+      this.messageFlags.push(
+        `flags.adv-reminder.message.ability.check.${abilityId}`,
+      );
+      this.messageFlags.push(
+        `flags.adv-reminder.message.ability.save.${abilityId}`,
+      );
     });
 
-    Object.keys(CONFIG.DND5E.skills).forEach((skillId) => this.messageFlags.push(`flags.adv-reminder.message.skill.${skillId}`));
+    Object.keys(CONFIG.DND5E.skills).forEach((skillId) =>
+      this.messageFlags.push(`flags.adv-reminder.message.skill.${skillId}`),
+    );
   }
 }

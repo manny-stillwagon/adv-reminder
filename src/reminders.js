@@ -33,8 +33,12 @@ export class AdvantageAccumulator {
    * @param {string[]} disKeys
    */
   applyFlags(actorFlags, advKeys, disKeys) {
-    this.counts.advantages.count += advKeys.filter(key => actorFlags[key]).length;
-    this.counts.disadvantages.count += disKeys.filter(key => actorFlags[key]).length;
+    this.counts.advantages.count += advKeys.filter(
+      (key) => actorFlags[key],
+    ).length;
+    this.counts.disadvantages.count += disKeys.filter(
+      (key) => actorFlags[key],
+    ).length;
   }
 
   /**
@@ -45,8 +49,12 @@ export class AdvantageAccumulator {
    */
   applyConditions(actor, advConditions, disConditions) {
     if (!actor) return;
-    this.counts.advantages.count += advConditions.flatMap(c => this._getConditionForEffect(actor, c)).length;
-    this.counts.disadvantages.count += disConditions.flatMap(c => this._getConditionForEffect(actor, c)).length;
+    this.counts.advantages.count += advConditions.flatMap((c) =>
+      this._getConditionForEffect(actor, c),
+    ).length;
+    this.counts.disadvantages.count += disConditions.flatMap((c) =>
+      this._getConditionForEffect(actor, c),
+    ).length;
   }
 
   /**
@@ -63,10 +71,15 @@ export class AdvantageAccumulator {
     const imms = actor.system.traits?.ci?.value ?? new Set();
     const statuses = actor.statuses;
     return props
-      .filter(k => {
+      .filter((k) => {
         const l = Number(k.split("-").pop());
-        return (statuses.has(k) && !imms.has(k))
-          || (!imms.has("exhaustion") && (level !== null) && Number.isInteger(l) && (level >= l));
+        return (
+          (statuses.has(k) && !imms.has(k)) ||
+          (!imms.has("exhaustion") &&
+            level !== null &&
+            Number.isInteger(l) &&
+            level >= l)
+        );
       })
       .toObject();
   }
@@ -79,12 +92,14 @@ export class AdvantageAccumulator {
   applyRollModeEffects(actor, rollModes) {
     // copied parts from DataField#applyChange, and AdvantageModeField
 
-    const changes = getApplicableChanges(actor, change => rollModes.includes(change.key));
+    const changes = getApplicableChanges(actor, (change) =>
+      rollModes.includes(change.key),
+    );
 
     // Apply the roll mode changes
-    for ( let change of changes ) {
+    for (let change of changes) {
       const delta = Number(change.value);
-      switch ( change.mode ) {
+      switch (change.mode) {
         case CONST.ACTIVE_EFFECT_MODES.ADD:
           this._applyChangeAdd(delta, change);
           break;
@@ -148,10 +163,14 @@ export class AdvantageAccumulator {
    * @param {Object} options
    */
   update(options) {
-    const mode = dnd5e.dataModels.fields.AdvantageModeField.resolveMode({}, {}, this.counts);
+    const mode = dnd5e.dataModels.fields.AdvantageModeField.resolveMode(
+      {},
+      {},
+      this.counts,
+    );
     debug("updating options with roll mode", mode);
-    options.advantage = (mode === 1);
-    options.disadvantage = (mode === -1);
+    options.advantage = mode === 1;
+    options.disadvantage = mode === -1;
   }
 }
 
@@ -172,7 +191,7 @@ class BaseReminder {
     const midiFlags = actor?.flags["midi-qol"] || {};
     const flat = foundry.utils.flattenObject(midiFlags);
     // only keep flags with a true value
-    Object.keys(flat).forEach(key => {
+    Object.keys(flat).forEach((key) => {
       if (flat[key] !== true) delete flat[key];
     });
     return flat;
@@ -209,7 +228,7 @@ class BaseReminder {
       const counts = {
         override: null,
         advantages: { count: 0, suppressed: false },
-        disadvantages: { count: 0, suppressed: false }
+        disadvantages: { count: 0, suppressed: false },
       };
       if (options.advantage) counts.advantages.count++;
       if (options.disadvantage) counts.disadvantages.count++;
@@ -219,7 +238,10 @@ class BaseReminder {
     // TODO handle more than one in 5.1 using combineFields
 
     const path = Object.keys(rollModes)[0];
-    const counts = dnd5e.dataModels.fields.AdvantageModeField.getCounts(this.actor, { key: path });
+    const counts = dnd5e.dataModels.fields.AdvantageModeField.getCounts(
+      this.actor,
+      { key: path },
+    );
     debug("Roll Mode counts actor", path, counts);
     return foundry.utils.deepClone(counts);
   }
@@ -267,7 +289,11 @@ export class AttackReminder extends BaseReminder {
 
   get disadvantageConditions() {
     const conditions = ["advReminderDisadvantageAttack"];
-    if (this.abilityId === "str" || this.abilityId === "dex" || this.abilityId === "con")
+    if (
+      this.abilityId === "str" ||
+      this.abilityId === "dex" ||
+      this.abilityId === "con"
+    )
       conditions.push("advReminderDisadvantagePhysicalRolls");
     return conditions;
   }
@@ -287,14 +313,24 @@ export class AttackReminder extends BaseReminder {
     // process target's conditions
     const grantsAdvConditions = ["advReminderGrantAdvantageAttack"];
     const grantsDisConditions = ["advReminderGrantDisadvantageAttack"];
-    accumulator.applyConditions(this.targetActor, grantsAdvConditions, grantsDisConditions);
+    accumulator.applyConditions(
+      this.targetActor,
+      grantsAdvConditions,
+      grantsDisConditions,
+    );
 
     // process distance-based status effects
     if (this.targetActor) {
-      const grantAdjacentAttack = accumulator._getConditionForEffect(this.targetActor, "advReminderGrantAdjacentAttack");
+      const grantAdjacentAttack = accumulator._getConditionForEffect(
+        this.targetActor,
+        "advReminderGrantAdjacentAttack",
+      );
       if (grantAdjacentAttack.length) {
         const distance = this.distanceFn();
-        const accumFn = distance <= 5 ? accumulator.advantage.bind(accumulator) : accumulator.disadvantage.bind(accumulator);
+        const accumFn =
+          distance <= 5
+            ? accumulator.advantage.bind(accumulator)
+            : accumulator.disadvantage.bind(accumulator);
         grantAdjacentAttack.forEach(accumFn);
       }
     }
@@ -322,7 +358,11 @@ class AbilityBaseReminder extends BaseReminder {
   }
 
   get disadvantageConditions() {
-    if (this.abilityId === "str" || this.abilityId === "dex" || this.abilityId === "con")
+    if (
+      this.abilityId === "str" ||
+      this.abilityId === "dex" ||
+      this.abilityId === "con"
+    )
       return ["advReminderDisadvantagePhysicalRolls"];
     return [];
   }
@@ -332,6 +372,10 @@ export class AbilityCheckReminder extends AbilityBaseReminder {
   /** @override */
   get advantageKeys() {
     return super.advantageKeys.concat([
+      "advantage.check.all",
+      `advantage.check.${this.abilityId}`,
+
+      // Deprecated midi flags for backwards compatibility
       "advantage.ability.check.all",
       `advantage.ability.check.${this.abilityId}`,
     ]);
@@ -340,6 +384,10 @@ export class AbilityCheckReminder extends AbilityBaseReminder {
   /** @override */
   get disadvantageKeys() {
     return super.disadvantageKeys.concat([
+      "disadvantage.check.all",
+      `disadvantage.check.${this.abilityId}`,
+
+      // Deprecated midi flags for backwards compatibility
       "disadvantage.ability.check.all",
       `disadvantage.ability.check.${this.abilityId}`,
     ]);
@@ -364,13 +412,20 @@ export class AbilitySaveReminder extends AbilityBaseReminder {
     if (!activity) return [];
 
     return activity.effects
-      .map(e => e.effect)
-      .flatMap(e => [...e.statuses, ...e.flags?.dnd5e?.riders?.statuses || []]);
+      .map((e) => e.effect)
+      .flatMap((e) => [
+        ...e.statuses,
+        ...(e.flags?.dnd5e?.riders?.statuses || []),
+      ]);
   }
 
   /** @override */
   get advantageKeys() {
     return super.advantageKeys.concat([
+      "advantage.save.all",
+      `advantage.save.${this.abilityId}`,
+
+      // Deprecated midi flags for backwards compatibility
       "advantage.ability.save.all",
       `advantage.ability.save.${this.abilityId}`,
     ]);
@@ -379,6 +434,10 @@ export class AbilitySaveReminder extends AbilityBaseReminder {
   /** @override */
   get disadvantageKeys() {
     return super.disadvantageKeys.concat([
+      "disadvantage.save.all",
+      `disadvantage.save.${this.abilityId}`,
+
+      // Deprecated midi flags for backwards compatibility
       "disadvantage.ability.save.all",
       `disadvantage.ability.save.${this.abilityId}`,
     ]);
@@ -387,19 +446,23 @@ export class AbilitySaveReminder extends AbilityBaseReminder {
   /** @override */
   get advantageConditions() {
     const conditions = [];
-    if (this.abilityId === "dex") conditions.push("advReminderAdvantageDexSave");
+    if (this.abilityId === "dex")
+      conditions.push("advReminderAdvantageDexSave");
     return conditions;
   }
 
   get disadvantageConditions() {
     const conditions = super.disadvantageConditions;
     conditions.push("advReminderDisadvantageSave");
-    if (this.abilityId === "dex") conditions.push("advReminderDisadvantageDexSave");
+    if (this.abilityId === "dex")
+      conditions.push("advReminderDisadvantageDexSave");
     return conditions;
   }
 
   get statusRollModes() {
-    return this.statuses.map(status => `flags.adv-reminder.statuses.${status}.save.roll.mode`);
+    return this.statuses.map(
+      (status) => `flags.adv-reminder.statuses.${status}.save.roll.mode`,
+    );
   }
 
   _customUpdateOptions(accumulator) {
@@ -415,7 +478,7 @@ export class AbilitySaveReminder extends AbilityBaseReminder {
 export class ConcentrationReminder extends AbilitySaveReminder {
   get rollModes() {
     return {
-      "system.attributes.concentration.roll.mode": ["DND5E.Concentration"]
+      "system.attributes.concentration.roll.mode": ["DND5E.Concentration"],
     };
   }
 }
@@ -434,7 +497,10 @@ export class SkillReminder extends AbilityCheckReminder {
 
   /** @override */
   get advantageKeys() {
-    return super.advantageKeys.concat(["advantage.skill.all", `advantage.skill.${this.skillId}`]);
+    return super.advantageKeys.concat([
+      "advantage.skill.all",
+      `advantage.skill.${this.skillId}`,
+    ]);
   }
 
   /** @override */
@@ -451,7 +517,10 @@ export class SkillReminder extends AbilityCheckReminder {
     // Check if the actor is wearing armor that imposes stealth disadvantage
     if (this.checkArmorStealth && this.skillId === "ste") {
       const item = this.items.find(
-        (item) => item.type === "equipment" && item.system.equipped && item.system.properties.has("stealthDisadvantage")
+        (item) =>
+          item.type === "equipment" &&
+          item.system.equipped &&
+          item.system.properties.has("stealthDisadvantage"),
       );
       debug("equipped item that imposes stealth disadvantage", item?.name);
       accumulator.disadvantage(item?.link);
@@ -465,7 +534,9 @@ export class InitiativeReminder extends AbilityCheckReminder {
   }
 
   get disadvantageConditions() {
-    return super.disadvantageConditions.concat("advReminderDisadvantageInitiative");
+    return super.disadvantageConditions.concat(
+      "advReminderDisadvantageInitiative",
+    );
   }
 }
 
@@ -476,12 +547,17 @@ export class DeathSaveReminder extends AbilityBaseReminder {
 
   /** @override */
   get advantageKeys() {
-    return super.advantageKeys.concat(["advantage.ability.save.all", "advantage.deathSave"]);
+    return super.advantageKeys.concat([
+      "advantage.save.all",
+      "advantage.ability.save.all",
+      "advantage.deathSave",
+    ]);
   }
 
   /** @override */
   get disadvantageKeys() {
     return super.disadvantageKeys.concat([
+      "disadvantage.save.all",
       "disadvantage.ability.save.all",
       "disadvantage.deathSave",
     ]);
@@ -489,7 +565,7 @@ export class DeathSaveReminder extends AbilityBaseReminder {
 
   get rollModes() {
     return {
-      "system.attributes.death.roll.mode": ["DND5E.DeathSave"]
+      "system.attributes.death.roll.mode": ["DND5E.DeathSave"],
     };
   }
 }
@@ -504,8 +580,12 @@ export class CriticalAccumulator extends AdvantageAccumulator {
   }
 
   applyFlags(actorFlags, critKeys, normalKeys) {
-    this.counts.critical.count += critKeys.filter(key => actorFlags[key]).length;
-    this.counts.critical.suppressed ||= normalKeys.some(key => actorFlags[key]);
+    this.counts.critical.count += critKeys.filter(
+      (key) => actorFlags[key],
+    ).length;
+    this.counts.critical.suppressed ||= normalKeys.some(
+      (key) => actorFlags[key],
+    );
   }
 
   critical(label) {
@@ -514,7 +594,9 @@ export class CriticalAccumulator extends AdvantageAccumulator {
 
   update(options) {
     // a normal hit overrides a crit
-    const critical = this.counts.critical.suppressed ? false : (this.counts.critical.count > 0);
+    const critical = this.counts.critical.suppressed
+      ? false
+      : this.counts.critical.count > 0;
     debug("updating isCritical", critical);
     options.isCritical = critical;
   }
@@ -536,7 +618,10 @@ export class CriticalReminder extends BaseReminder {
     // get the Range directly from the actor's flags
     if (targetActor) {
       const grantsCriticalRange =
-        foundry.utils.getProperty(targetActor, "flags.midi-qol.grants.critical.range") || -Infinity;
+        foundry.utils.getProperty(
+          targetActor,
+          "flags.midi-qol.grants.critical.range",
+        ) || -Infinity;
       this._adjustRange(distanceFn, grantsCriticalRange);
     }
   }
@@ -545,7 +630,8 @@ export class CriticalReminder extends BaseReminder {
     // adjust the Range flag to look like a boolean like the rest
     if ("grants.critical.range" in this.targetFlags) {
       const distance = distanceFn();
-      this.targetFlags["grants.critical.range"] = distance <= grantsCriticalRange;
+      this.targetFlags["grants.critical.range"] =
+        distance <= grantsCriticalRange;
     }
   }
 
@@ -564,7 +650,10 @@ export class CriticalReminder extends BaseReminder {
       `grants.critical.${this.actionType}`,
       "grants.critical.range",
     ];
-    const grantsNormalKeys = ["fail.critical.all", `fail.critical.${this.actionType}`];
+    const grantsNormalKeys = [
+      "fail.critical.all",
+      `fail.critical.${this.actionType}`,
+    ];
 
     // initialize the critical counts
     const counts = this._initCounts(options.isCritical);
@@ -575,10 +664,14 @@ export class CriticalReminder extends BaseReminder {
     accumulator.applyFlags(this.targetFlags, grantsCritKeys, grantsNormalKeys);
     // handle distance-based status effects
     if (this.targetActor) {
-      const grantAdjacentCritical = accumulator._getConditionForEffect(this.targetActor, "advReminderGrantAdjacentCritical");
+      const grantAdjacentCritical = accumulator._getConditionForEffect(
+        this.targetActor,
+        "advReminderGrantAdjacentCritical",
+      );
       if (grantAdjacentCritical.length) {
         const distance = this.distanceFn();
-        if (distance <= 5) grantAdjacentCritical.forEach(accumulator.critical.bind(accumulator));
+        if (distance <= 5)
+          grantAdjacentCritical.forEach(accumulator.critical.bind(accumulator));
       }
     }
     this._customUpdateOptions(accumulator);
@@ -590,7 +683,7 @@ export class CriticalReminder extends BaseReminder {
    */
   _initCounts(isCritical) {
     const counts = {
-      critical: { count: 0, suppressed: false }
+      critical: { count: 0, suppressed: false },
     };
     if (isCritical) counts.critical.count++;
     return counts;

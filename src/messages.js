@@ -20,25 +20,32 @@ class BaseMessage {
     debug("checking for message effects");
 
     // get any existing messages
-    const messages = foundry.utils.getProperty(options, "options.adv-reminder.messages") ?? [];
+    const messages =
+      foundry.utils.getProperty(options, "options.adv-reminder.messages") ?? [];
 
     // get messages from the actor and merge
     const keys = this.messageKeys;
-    const actorMessages = getApplicableChanges(this.actor, (change) => keys.includes(change.key))
-      .map((change) => change.value);
+    const actorMessages = getApplicableChanges(this.actor, (change) =>
+      keys.includes(change.key),
+    ).map((change) => change.value);
     messages.push(...actorMessages);
 
     // get messages from the target and merge
     const targetKeys = this.targetKeys;
     if (targetKeys && this.targetActor) {
-      const targetMessages = getApplicableChanges(this.targetActor, (change) => targetKeys.includes(change.key))
-        .map((change) => change.value);
+      const targetMessages = getApplicableChanges(this.targetActor, (change) =>
+        targetKeys.includes(change.key),
+      ).map((change) => change.value);
       messages.push(...targetMessages);
     }
 
     if (messages.length > 0) {
       debug("messages found:", messages);
-      foundry.utils.setProperty(options, "options.adv-reminder.messages", messages);
+      foundry.utils.setProperty(
+        options,
+        "options.adv-reminder.messages",
+        messages,
+      );
     }
   }
 }
@@ -58,7 +65,7 @@ export class AttackMessage extends BaseMessage {
     return super.messageKeys.concat(
       "flags.adv-reminder.message.attack.all",
       `flags.adv-reminder.message.attack.${this.actionType}`,
-      `flags.adv-reminder.message.attack.${this.abilityId}`
+      `flags.adv-reminder.message.attack.${this.abilityId}`,
     );
   }
 
@@ -90,8 +97,12 @@ export class AbilityCheckMessage extends AbilityBaseMessage {
   /** @override */
   get messageKeys() {
     return super.messageKeys.concat(
+      "flags.adv-reminder.message.check.all",
+      `flags.adv-reminder.message.check.${this.abilityId}`,
+
+      // Message flags ala deprecated midi advantage flags for backwards compatibility
       "flags.adv-reminder.message.ability.check.all",
-      `flags.adv-reminder.message.ability.check.${this.abilityId}`
+      `flags.adv-reminder.message.ability.check.${this.abilityId}`,
     );
   }
 }
@@ -100,8 +111,12 @@ export class AbilitySaveMessage extends AbilityBaseMessage {
   /** @override */
   get messageKeys() {
     return super.messageKeys.concat(
+      "flags.adv-reminder.message.save.all",
+      `flags.adv-reminder.message.save.${this.abilityId}`,
+
+      // Message flags ala deprecated midi advantage flags for backwards compatibility
       "flags.adv-reminder.message.ability.save.all",
-      `flags.adv-reminder.message.ability.save.${this.abilityId}`
+      `flags.adv-reminder.message.ability.save.${this.abilityId}`,
     );
   }
 }
@@ -109,7 +124,10 @@ export class AbilitySaveMessage extends AbilityBaseMessage {
 export class ConcentrationMessage extends AbilitySaveMessage {
   /** @override */
   get messageKeys() {
-    return super.messageKeys.concat("flags.adv-reminder.message.ability.concentration");
+    return super.messageKeys.concat(
+      "flags.adv-reminder.message.concentration",
+      "flags.adv-reminder.message.ability.concentration",
+    );
   }
 }
 
@@ -125,7 +143,7 @@ export class SkillMessage extends AbilityCheckMessage {
   get messageKeys() {
     return super.messageKeys.concat(
       "flags.adv-reminder.message.skill.all",
-      `flags.adv-reminder.message.skill.${this.skillId}`
+      `flags.adv-reminder.message.skill.${this.skillId}`,
     );
   }
 }
@@ -145,8 +163,9 @@ export class DeathSaveMessage extends AbilityBaseMessage {
   /** @override */
   get messageKeys() {
     return super.messageKeys.concat(
+      "flags.adv-reminder.message.save.all",
       "flags.adv-reminder.message.ability.save.all",
-      "flags.adv-reminder.message.deathSave"
+      "flags.adv-reminder.message.deathSave",
     );
   }
 }
@@ -163,7 +182,7 @@ export class DamageMessage extends BaseMessage {
   get messageKeys() {
     return super.messageKeys.concat(
       "flags.adv-reminder.message.damage.all",
-      `flags.adv-reminder.message.damage.${this.actionType}`
+      `flags.adv-reminder.message.damage.${this.actionType}`,
     );
   }
 
