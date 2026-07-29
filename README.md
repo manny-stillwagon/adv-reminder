@@ -8,7 +8,12 @@ This fork updates Kaelad02's original module for Foundry VTT v14.
 
 I will likely not be adding any features, just trying to maintain functionality. Please open an issue if you find any problems.
 
+### Installation
+
+Paste this URL into the 'Manifest URL' field of the 'Install Module' dialog in the Foundry configuration: `https://github.com/manny-stillwagon/adv-reminder/releases/latest/download/module.json`, then enable the module in your world.
+
 Original ReadMe continues below.
+___
 
 Advantage Reminder builds on how the D&D 5e system handles Advantage and Disadvantage on D20 Tests. While you can set Advantage on rolls like Saving Throws, it's not always clear when you should roll with Advantage or why. This module improves that by allowing you to make the default button stand out by styling it, as seen by the green button in the screenshot below. It also can tell you why you should make that roll, as seen by the "Advantage from Rage" message.
 
